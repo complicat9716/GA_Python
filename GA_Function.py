@@ -17,7 +17,7 @@ def GA(problem, params):
     nPop = params.nPop                      # parent population
     beta = params.beta                      # Parent score coefficient for picking parents(<0 for find the minimum, >0 for find the maximum)
     offspring_percentage = params.offspring_percentage      # Percentage of offspring compare to Population size
-    offspring_PopSize = np.round(offspring_percentage*nPop/2)*2     # two parents have two offsprings
+    offspring_PopSize = int(np.round(offspring_percentage*nPop/2)*2)     # two parents have two offsprings
     Mutation_rate = params.Mutation_rate    # Mutation rate of GA
     ShowIterInfo = params.ShowIterInfo      # =true to show the iterations
 
@@ -45,7 +45,14 @@ def GA(problem, params):
         parent_pop.append(empty_individual)                                     # Add individual into the population
 
         # find the minimum or maximum based on the user input
-        update_Best(FindMin, BestIndividual, empty_individual)
+        if FindMin:
+            UpdateFlag = empty_individual.cost < BestIndividual.cost
+        else:
+            UpdateFlag = empty_individual.cost > BestIndividual.cost
+
+        # update the best individual (make a deep copy)
+        if UpdateFlag:
+            BestIndividual = copy.deepcopy(empty_individual)
 
 
     ################################################################################################
@@ -88,9 +95,25 @@ def GA(problem, params):
             offspring1.cost = CostFunction(offspring1.position)
             offspring2.cost = CostFunction(offspring2.position)
 
-            # update the best solution if there is one
-            update_Best(FindMin, BestIndividual, offspring1)
-            update_Best(FindMin, BestIndividual, offspring2)
+
+            # Update the best if there is one
+            if FindMin:
+                UpdateFlag = offspring1.cost < BestIndividual.cost
+            else:
+                UpdateFlag = offspring1.cost > BestIndividual.cost
+
+            if UpdateFlag:
+                BestIndividual = copy.deepcopy(offspring1)
+
+            if FindMin:
+                UpdateFlag = offspring2.cost < BestIndividual.cost
+            else:
+                UpdateFlag = offspring2.cost > BestIndividual.cost
+
+            if UpdateFlag:
+                BestIndividual = copy.deepcopy(offspring2)
+            
+
 
             # update the offspring population
             offspring_pop.append(offspring1)
@@ -102,7 +125,10 @@ def GA(problem, params):
         parent_pop += offspring_pop
 
         # Sort the population based on the cost
-        parent_pop = sorted(parent_pop, key = lambda x: x.cost)
+        if FindMin:
+            parent_pop = sorted(parent_pop, key = lambda x: x.cost, reverse=False)
+        else:
+            parent_pop = sorted(parent_pop, key = lambda x: x.cost, reverse=True)
 
         # Trim the extra individuals
         parent_pop = parent_pop[0: nPop]
@@ -114,6 +140,10 @@ def GA(problem, params):
 
         # show information
         if ShowIterInfo:
+            if FindMin:
+                print("Finding Minimum....")
+            else:
+                print("Finding Maximum....")
             print("Iteration {}: Best Cost = {}".format(it, BestIndividual.cost))
             print("Best Solution = {}".format(BestIndividual.position))
             print("*****************************************************")
@@ -186,23 +216,9 @@ def mutation(offspring, Mutation_rate):
 def apply_bound(offspring, VarMin, VarMax):
 
     # limit the minimum
-    offspring.position = np.maximum(offspring, VarMin)
+    offspring.position = np.maximum(offspring.position, VarMin)
 
     # limit the maximum
-    offspring.position = np.minimum(offspring, VarMax)
+    offspring.position = np.minimum(offspring.position, VarMax)
 
 
-
-
-# update the best
-def update_Best(FindMin, BestIndividual, offspring):
-
-    # find the minimum or maximum based on the user input
-    if FindMin:
-        UpdateFlag = offspring.cost < BestIndividual.cost
-    else:
-        UpdateFlag = offspring.cost > BestIndividual.cost
-
-    # update the best individual (make a deep copy)
-    if UpdateFlag:
-        BestIndividual = copy.deepcopy(offspring)

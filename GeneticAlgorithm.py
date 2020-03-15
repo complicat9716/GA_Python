@@ -16,8 +16,8 @@ problem.FindMin = True
 ################################################################################################
 # GA Parameters
 params = ParamsClass()
-params.MaxIt = 100
-params.nPop = 20
+params.MaxIt = 500
+params.nPop = 100
 params.beta = 1
 params.offspring_percentage = 1
 params.Mutation_rate = 0.001
@@ -29,3 +29,14 @@ result = GA(problem, params)
 
 ################################################################################################
 # Results
+plt.plot(result.BestCosts_List)
+plt.xlim(0, params.MaxIt)
+plt.xlabel('Iterations')
+plt.ylabel('Best Cost')
+if problem.FindMin:
+    plt.title('(GA) Minimum Convergent Plot')
+else:
+    plt.title('(GA) Maximum Convergent Plot')
+plt.grid(True)
+
+plt.show()
