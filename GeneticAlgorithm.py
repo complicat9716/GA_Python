@@ -1,4 +1,4 @@
-import numpy as numpy
+import numpy as np
 import matplotlib.pyplot as plt
 from ToolClasses import ProblemClass, ParamsClass           # import tools
 from CostFunction import *                                  # import cost function
@@ -27,7 +27,7 @@ params.ShowIterInfo = True
 ################################################################################################
 # Run GA
 result = GA(problem, params)
-print(result)
+print(len(result))
 
 
 ################################################################################################
