@@ -9,27 +9,30 @@ from GA_Function import *                                   # import GA
 problem = ProblemClass()
 problem.CostFunction = sphere
 problem.nVar = 5
-problem.VarMin = -10
-problem.VarMax = 10
+problem.VarMin = [1, 1, 1, 1, 1]
+problem.VarMax = [10, 10, 10, 10, 10]
 problem.FindMin = True
 
 ################################################################################################
 # GA Parameters
 params = ParamsClass()
-params.MaxIt = 500
-params.nPop = 100
+params.MaxIt = 400
+params.nPop = 200
 params.beta = 1
 params.offspring_percentage = 1
 params.Mutation_rate = 0.001
-params.ShowIterInfo = True
+params.ShowIterInfo = False
 
 ################################################################################################
 # Run GA
 result = GA(problem, params)
+print("Best Cost = {}".format(result.GlobalBest.cost))
+print("Best Solution = {}".format(result.GlobalBest.position))
 
 ################################################################################################
 # Results
 plt.plot(result.BestCosts_List)
+# plt.semilogy(result.BestCosts_List)
 plt.xlim(0, params.MaxIt)
 plt.xlabel('Iterations')
 plt.ylabel('Best Cost')

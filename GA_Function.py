@@ -65,17 +65,37 @@ def GA(problem, params):
     # Main loop
     for it in range(MaxIt):
 
+        ################################################################################################
+        # store all the costs of parents in a list
+        costs = np.array([x.cost for x in parent_pop])
+
+        # calculate the average cost
+        avg_cost = np.mean(costs)
+
+        # normalize the costs if the cost mean is not zero
+        if avg_cost != 0:
+            costs /= avg_cost
+
+        # differentiate the parents based on there score
+        score_list = np.exp(beta*costs)
+
+        ################################################################################################
         # offspring population
         offspring_pop = []
 
         for k in range(offspring_PopSize//2):
             
-            # random permutation
-            q = np.random.permutation(nPop)
+            # # random permutation
+            # q = np.random.permutation(nPop)
 
-            # pick two parents randomly
-            parent1 = parent_pop[q[0]]
-            parent2 = parent_pop[q[1]]
+            # # pick two parents randomly
+            # parent1 = parent_pop[q[0]]
+            # parent2 = parent_pop[q[1]]
+
+            ################################################################################################
+            # roulette_wheel_selection
+            parent1 = parent_pop[roulette_wheel_selection(score_list)]
+            parent2 = parent_pop[roulette_wheel_selection(score_list)]
 
             ################################################################################################
             # crossover
@@ -88,8 +108,8 @@ def GA(problem, params):
 
             ################################################################################################
             # apply boundaries
-            apply_bound(offspring1, VarMin, VarMax)
-            apply_bound(offspring2, VarMin, VarMax)
+            offspring1 = apply_bound(offspring1, VarMin, VarMax)
+            offspring2 = apply_bound(offspring2, VarMin, VarMax)
 
             # evaluate the offsprings
             offspring1.cost = CostFunction(offspring1.position)
@@ -143,7 +163,7 @@ def GA(problem, params):
             if FindMin:
                 print("Finding Minimum....")
             else:
-                print("Finding Maximum....")
+                print("Finding Minimum....")
             print("Iteration {}: Best Cost = {}".format(it, BestIndividual.cost))
             print("Best Solution = {}".format(BestIndividual.position))
             print("*****************************************************")
@@ -221,4 +241,21 @@ def apply_bound(offspring, VarMin, VarMax):
     # limit the maximum
     offspring.position = np.minimum(offspring.position, VarMax)
 
+    return offspring
 
+
+
+# Select parent based on the cost score
+def roulette_wheel_selection(cost_list):
+
+    # calculate the cum sum of the population cost list
+    cumsum = np.cumsum(cost_list)
+
+    # generate a random number within the cost range
+    r = sum(cost_list)*np.random.rand()
+
+    # find the index of cost greater than the random number
+    indexes = np.argwhere(r <= cumsum)
+
+    # return the first index
+    return indexes[0][0] 
