@@ -45,19 +45,14 @@ def GA(problem, params):
         parent_pop.append(empty_individual)                                     # Add individual into the population
 
         # find the minimum or maximum based on the user input
-        if FindMin:
-            UpdateFlag = empty_individual.cost < BestIndividual.cost
-        else:
-            UpdateFlag = empty_individual.cost > BestIndividual.cost
+        update_Best(FindMin, BestIndividual, empty_individual)
 
-        # update the best individual (make a deep copy)
-        if UpdateFlag:
-            BestIndividual = copy.deepcopy(empty_individual)
 
     ################################################################################################
     # record the best cost and candidate along the iterations
     BestCosts_List = np.empty(MaxIt)
     BestCandidates_List = []
+
 
     ################################################################################################
     # Main loop
@@ -76,25 +71,72 @@ def GA(problem, params):
             parent2 = parent_pop[q[1]]
 
             ################################################################################################
-            # Crossover
+            # crossover
             offspring1, offspring2 = crossover(parent1, parent2)
 
             ################################################################################################
             # mutation
+            offspring1 = mutation(offspring1, Mutation_rate)
+            offspring2 = mutation(offspring2, Mutation_rate)
+
+            ################################################################################################
+            # apply boundaries
+            apply_bound(offspring1, VarMin, VarMax)
+            apply_bound(offspring2, VarMin, VarMax)
+
+            # evaluate the offsprings
+            offspring1.cost = CostFunction(offspring1.position)
+            offspring2.cost = CostFunction(offspring2.position)
+
+            # update the best solution if there is one
+            update_Best(FindMin, BestIndividual, offspring1)
+            update_Best(FindMin, BestIndividual, offspring2)
+
+            # update the offspring population
+            offspring_pop.append(offspring1)
+            offspring_pop.append(offspring2)
 
 
-        
+        ################################################################################################
+        # Merge the parents and offsprings
+        parent_pop += offspring_pop
+
+        # Sort the population based on the cost
+        parent_pop = sorted(parent_pop, key = lambda x: x.cost)
+
+        # Trim the extra individuals
+        parent_pop = parent_pop[0: nPop]
+
+        ################################################################################################
+        # store the best cost and candidate along the iterations
+        BestCosts_List[it] = BestIndividual.cost
+        BestCandidates_List.append(BestIndividual.position)
+
+        # show information
+        if ShowIterInfo:
+            print("Iteration {}: Best Cost = {}".format(it, BestIndividual.cost))
+            print("Best Solution = {}".format(BestIndividual.position))
+            print("*****************************************************")
+
+
 
     ################################################################################################
     # result
     result = ResultClass()
     result.last_iteration_pop = parent_pop
+    result.BestCosts_List = BestCosts_List
+    result.BestCandidates_List = BestCandidates_List
+    result.GlobalBest = BestIndividual
 
     return result
 
 
 
 
+
+
+################################################################################################
+# TOOLS
 
 # crossover function
 def crossover(parent1, parent2):
@@ -117,6 +159,7 @@ def crossover(parent1, parent2):
     return offspring1, offspring2
 
 
+
 # mutation function
 def mutation(offspring, Mutation_rate):
 
@@ -134,3 +177,32 @@ def mutation(offspring, Mutation_rate):
 
     # mutate the corresponding indexes
     mutated_offspring.position[indexes] = offspring.position[indexes] + sigma*np.random.randn(*indexes.shape)
+
+    return mutated_offspring
+
+
+
+# apply boundaries
+def apply_bound(offspring, VarMin, VarMax):
+
+    # limit the minimum
+    offspring.position = np.maximum(offspring, VarMin)
+
+    # limit the maximum
+    offspring.position = np.minimum(offspring, VarMax)
+
+
+
+
+# update the best
+def update_Best(FindMin, BestIndividual, offspring):
+
+    # find the minimum or maximum based on the user input
+    if FindMin:
+        UpdateFlag = offspring.cost < BestIndividual.cost
+    else:
+        UpdateFlag = offspring.cost > BestIndividual.cost
+
+    # update the best individual (make a deep copy)
+    if UpdateFlag:
+        BestIndividual = copy.deepcopy(offspring)
