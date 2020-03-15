@@ -25,3 +25,9 @@ class ResultClass():
         self.BestCosts_List = None
         self.BestCandidate_List = None
         self.GlobalBest = None
+
+# Individuals class
+class EmptyIndividual():
+    def __init__(self):
+        self.position = None
+        self.cost = None
