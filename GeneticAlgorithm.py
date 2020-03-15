@@ -19,9 +19,8 @@ params = ParamsClass()
 params.MaxIt = 100
 params.nPop = 20
 params.beta = 1
-params.c_percentage = 1
+params.offspring_percentage = 1
 params.Mutation_rate = 0.001
-params.sigma = 0.1
 params.ShowIterInfo = True
 
 ################################################################################################
